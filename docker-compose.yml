@@ -1,0 +1,30 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: opsboard-django-api
+    working_dir: /app
+    volumes:
+      - ./:/app
+    ports:
+      - "8001:8000"
+    environment:
+      DJANGO_SECRET_KEY: "dev-secret-key-change-me"
+      DJANGO_DEBUG: "1"
+      DB_NAME: "opsboard"
+      DB_USER: "opsboard"
+      DB_PASSWORD: "opsboard_password"
+      DB_HOST: "opsboard-postgres"
+      DB_PORT: "5432"
+    networks:
+      - opsboard_net
+    command: >
+      sh -c "python -m pip install --no-cache-dir -r requirements.txt &&
+             python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+
+networks:
+  opsboard_net:
+    external: true
+    name: opsboard_net
