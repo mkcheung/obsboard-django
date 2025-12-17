@@ -13,14 +13,14 @@ LOGOUT_URL = reverse('accounts:logout')
 
 User = get_user_model()
 
-def create_user(**overrides):
+def create_user(**params):
     defaults = {
         "name": "Test Name",
         "email": "test@example.com",
         "username": "test@example.com",
         "password": "testpass123",
     }
-    defaults.update(overrides)
+    defaults.update(params)
 
     password = defaults.pop("password")
     user = User.objects.create_user(**defaults)
@@ -136,14 +136,19 @@ class PublicAuthApiTests(APITestCase):
 
 
 class PrivateAuthApiTests(APIClient):
-    def setup(self):
+    def setUp(self):
         self.user = create_user()
         self.client = APIClient()
         self.client.force_authenticate(self.user)
     
     def test_logout(self):
-        logout_payload = {
-            'user': self.user,
+        payload = {
+            'email': self.user.email,
+            'password': self.user.password
         }
-        res = self.client.post(LOGOUT_URL, logout_payload)
+        login_res = self.client.post(LOGIN_URL, payload)
+        self.assertEqual(login_res.status_code, status.HTTP_200_OK)
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {login_res.data.token}")
+        res = self.client.post(LOGOUT_URL)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
+ 

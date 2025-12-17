@@ -1,3 +1,5 @@
+
+from django.contrib.auth import get_user_model
 from django.http import JsonResponse
 from accounts.serializers import (
     RegisterSerializer,
@@ -30,10 +32,9 @@ def login(request):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def logout(request):
-    print(request)
-    Token.objects.filter(user=request.user).delete()
+    request.auth.delete()
     return Response({"message": "Logged out"}, status=status.HTTP_200_OK)
 
 
 def me(request):
-    return JsonResponse({"message": "me endpoint"})
+    pass
