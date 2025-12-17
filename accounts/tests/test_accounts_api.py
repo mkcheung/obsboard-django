@@ -10,6 +10,7 @@ User = get_user_model()
 REGISTER_URL = reverse('accounts:register')
 LOGIN_URL = reverse('accounts:login')
 LOGOUT_URL = reverse('accounts:logout')
+ME_URL = reverse('accounts:me')
 
 User = get_user_model()
 
@@ -135,20 +136,35 @@ class PublicAuthApiTests(APITestCase):
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
 
-class PrivateAuthApiTests(APIClient):
+class PrivateAuthApiTests(APITestCase):
     def setUp(self):
-        self.user = create_user()
+        self.password = 'testpass123'
+        self.user = create_user(password=self.password)
         self.client = APIClient()
-        self.client.force_authenticate(self.user)
     
     def test_logout(self):
         payload = {
             'email': self.user.email,
-            'password': self.user.password
+            'password': self.password
+        }
+        login_res = self.client.post(LOGIN_URL, payload)
+
+        self.assertEqual(login_res.status_code, status.HTTP_200_OK)
+        self.assertIn('token', login_res.data)
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {login_res.data['token']}")
+        res = self.client.post(LOGOUT_URL)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_me(self):
+        self.password = 'testpass123'
+        payload = {
+            'email': self.user.email,
+            'password': self.password
         }
         login_res = self.client.post(LOGIN_URL, payload)
         self.assertEqual(login_res.status_code, status.HTTP_200_OK)
-        self.client.credentials(HTTP_AUTHORIZATION=f"Token {login_res.data.token}")
-        res = self.client.post(LOGOUT_URL)
-        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn('token', login_res.data)
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {login_res.data['token']}")
+        me_res = self.client.post(ME_URL)
+        self.assertEqual(me_res.status_code, status.HTTP_200_OK)
  
