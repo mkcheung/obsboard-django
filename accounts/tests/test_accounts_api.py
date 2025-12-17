@@ -8,6 +8,9 @@ from rest_framework.test import APITestCase
 
 User = get_user_model()
 REGISTER_URL = reverse('accounts:register')
+LOGIN_URL = reverse('accounts:login')
+
+User = get_user_model()
 
 class PublicAuthApiTests(APITestCase):
     def setUp(self):
@@ -64,4 +67,53 @@ class PublicAuthApiTests(APITestCase):
             "password_confirm": "",
         }
         res = self.client.post(REGISTER_URL, payload)
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_create_token_for_user(self):
+        register_payload = {
+            'email': 'test@example.com',
+            'username': 'test@example.com',
+            'password': 'testpass123',
+            'password_confirm': 'testpass123',
+            'name': 'Test Name',
+        }
+        res = self.client.post(REGISTER_URL, register_payload, format="json")
+        payload = {
+            'email': register_payload['email'],
+            'password': register_payload['password']
+        }
+        res = self.client.post(LOGIN_URL, payload)
+        self.assertIn('token', res.data)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_create_token_incorrect_password(self):
+        register_payload = {
+            'email': 'test@example.com',
+            'username': 'test@example.com',
+            'password': 'testpass123',
+            'password_confirm': 'testpass123',
+            'name': 'Test Name',
+        }
+        res = self.client.post(REGISTER_URL, register_payload, format="json")
+        payload = {
+            'email': register_payload['email'],
+            'password': 'testpas'
+        }
+        res = self.client.post(LOGIN_URL, payload)
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_create_token_missing_email(self):
+        register_payload = {
+            'email': 'test@example.com',
+            'username': 'test@example.com',
+            'password': 'testpass123',
+            'password_confirm': 'testpass123',
+            'name': 'Test Name',
+        }
+        res = self.client.post(REGISTER_URL, register_payload, format="json")
+        payload = {
+            'email': '',
+            'password': 'testpass123'
+        }
+        res = self.client.post(LOGIN_URL, payload)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)

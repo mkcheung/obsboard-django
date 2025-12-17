@@ -50,3 +50,29 @@ class RegisterSerializer(serializers.ModelSerializer):
         if (attrs['password'] != attrs["password_confirm"]):
             raise serializers.ValidationError("Passwords do not match.")
         return attrs
+    
+
+class LoginSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField(
+        style={
+            'input_type': 'password'
+        },
+        trim_whitespace=False
+    )
+
+    def validate(self, attrs):
+        email = attrs.get('email')
+        password = attrs.get('password')
+        user = authenticate(
+            request=self.context.get('request'),
+            username=email,
+            password=password
+        )
+        
+        if not user:
+            msg = _('Email and/or Password are incorrect.')
+            raise serializers.ValidationError(msg, code='authorization')
+       
+        attrs['user'] = user
+        return attrs
