@@ -4,6 +4,7 @@ from accounts.serializers import (
     LoginSerializer
 )
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework import status
@@ -26,8 +27,13 @@ def login(request):
     token, _ = Token.objects.get_or_create(user=user)
     return Response({"token": token.key}, status=status.HTTP_200_OK)
 
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def logout(request):
-    return JsonResponse({"message": "logout endpoint"})
+    print(request)
+    Token.objects.filter(user=request.user).delete()
+    return Response({"message": "Logged out"}, status=status.HTTP_200_OK)
+
 
 def me(request):
     return JsonResponse({"message": "me endpoint"})

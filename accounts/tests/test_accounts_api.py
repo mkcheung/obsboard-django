@@ -9,8 +9,24 @@ from rest_framework.test import APITestCase
 User = get_user_model()
 REGISTER_URL = reverse('accounts:register')
 LOGIN_URL = reverse('accounts:login')
+LOGOUT_URL = reverse('accounts:logout')
 
 User = get_user_model()
+
+def create_user(**overrides):
+    defaults = {
+        "name": "Test Name",
+        "email": "test@example.com",
+        "username": "test@example.com",
+        "password": "testpass123",
+    }
+    defaults.update(overrides)
+
+    password = defaults.pop("password")
+    user = User.objects.create_user(**defaults)
+    user.set_password(password)
+    user.save()
+    return user
 
 class PublicAuthApiTests(APITestCase):
     def setUp(self):
@@ -117,3 +133,17 @@ class PublicAuthApiTests(APITestCase):
         }
         res = self.client.post(LOGIN_URL, payload)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+class PrivateAuthApiTests(APIClient):
+    def setup(self):
+        self.user = create_user()
+        self.client = APIClient()
+        self.client.force_authenticate(self.user)
+    
+    def test_logout(self):
+        logout_payload = {
+            'user': self.user,
+        }
+        res = self.client.post(LOGOUT_URL, logout_payload)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
