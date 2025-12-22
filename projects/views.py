@@ -1,5 +1,4 @@
 from django.contrib.auth import get_user_model
-from django.http import JsonResponse
 from projects.serializers import (
     ProjectSerializer,
 )
