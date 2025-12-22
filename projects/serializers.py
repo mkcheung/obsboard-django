@@ -5,5 +5,5 @@ from rest_framework import serializers
 class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
-        fields = ["name", "description", "created_at", "updated_at"]
+        fields = ["id", "name", "description", "created_at", "updated_at"]
         read_only_fields = ["id", "created_at", "updated_at"]
