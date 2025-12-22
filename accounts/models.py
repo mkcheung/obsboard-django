@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.conf import settings
 from django.db import models
+
 
 class User(AbstractUser):
     name = models.CharField(max_length=100)
@@ -8,4 +10,4 @@ class User(AbstractUser):
     email_verified_at = models.DateTimeField(null=True, blank=True)
 
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = ["name", "username"]  
+    REQUIRED_FIELDS = ["name", "username"]
