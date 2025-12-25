@@ -28,7 +28,7 @@ class TaskViewSet(viewsets.ModelViewSet):
         "priority": ["exact"],
     }
 
-    search_fields = ["title, description"]
+    search_fields = ["title", "description"]
 
     ordering_fields = [
         "created_at",
