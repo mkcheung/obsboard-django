@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime, timedelta
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 
@@ -58,6 +58,7 @@ def create_task(user, project_id, **params):
         "due_date": "2025-01-15",
         "estimate_minutes": 90,
     }
+    defaults.update(params)
     task = Task.objects.create(user=user, **defaults)
     return task
 
@@ -82,6 +83,23 @@ class PrivateAuthApiTests(APITestCase):
         }
         res = self.client.post(TASK_URL, payload)
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+    def test_sort_desc_due_date(self):
+        task1 = create_task(
+            user=self.user, project_id=self.project.id, due_date=date(2025, 1, 5)
+        )
+        task2 = create_task(
+            user=self.user, project_id=self.project.id, due_date=date(2025, 1, 3)
+        )
+        task3 = create_task(
+            user=self.user, project_id=self.project.id, due_date=date(2025, 1, 6)
+        )
+        res = self.client.get(f"{TASK_URL}?sort=due_date&dir=desc&page_size=10")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        results = res.data.get("results", res.data.get("data", res.data))
+
+        ids_returned_in_order = [item["id"] for item in results]
+        self.assertEqual(ids_returned_in_order, [task3.id, task1.id, task2.id])
 
     def test_update_task_partial(self):
         task = create_task(user=self.user, project_id=self.project.id)

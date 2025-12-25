@@ -7,7 +7,7 @@ from tasks.serializers import (
 )
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.filters import SearchFilter, OrderingFilter
+from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status, viewsets, permissions
@@ -20,7 +20,7 @@ class TaskViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = TaskSerializer
 
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, SearchFilter]
 
     filterset_fields = {
         "project_id": ["exact"],
@@ -61,7 +61,7 @@ class TaskViewSet(viewsets.ModelViewSet):
         # get the search terms
         searchterms = self.request.query_params.get("search")
         if searchterms:
-            query_set = self.queryset(
+            query_set = query_set.filter(
                 Q(title__icontains=searchterms) | Q(description__icontains=searchterms)
             )
 
