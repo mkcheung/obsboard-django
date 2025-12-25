@@ -25,3 +25,9 @@ class TaskSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
         read_only_fields = ["id", "created_at", "updated_at"]
+
+    def validate_project_id(self, project):
+        request = self.context["request"]
+        if project.user_id != request.user.id:
+            raise serializers.ValidationError("Invalid task!")
+        return project

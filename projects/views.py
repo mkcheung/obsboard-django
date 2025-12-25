@@ -1,3 +1,4 @@
+from core.pagination import StandardResultsSetPagination
 from django.contrib.auth import get_user_model
 from projects.serializers import (
     ProjectSerializer,
@@ -11,9 +12,10 @@ from projects.models import Project
 
 
 class ProjectViewSet(viewsets.ModelViewSet):
-    serializer_class = ProjectSerializer
     authentication_classes = [TokenAuthentication]
+    pagination_class = StandardResultsSetPagination
     permission_classes = [IsAuthenticated]
+    serializer_class = ProjectSerializer
 
     def get_queryset(self):
         return Project.objects.filter(user=self.request.user).order_by("-id")
