@@ -21,11 +21,12 @@ def create_user(**params):
     defaults = {
         "name": "Test Name",
         "email": "test@example.com",
-        "username": "test@example.com",
         "password": "testpass123",
     }
     defaults.update(params)
-
+    # Ensure username is unique
+    if "username" not in defaults:
+        defaults["username"] = defaults["email"]
     password = defaults.pop("password")
     user = User.objects.create_user(**defaults)
     user.set_password(password)
@@ -58,6 +59,36 @@ class PrivateAuthApiTests(APITestCase):
         res = self.client.post(PROJECT_URL, payload)
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
 
+    def test_find_nonexistent_project(self):
+        url = detail_url(999999)
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_find_project_with_term(self):
+        project1 = create_project(
+            user=self.user, name="Project 1 target", description="None"
+        )
+        project2 = create_project(
+            user=self.user,
+            name="Project 2",
+            description="This contains a target to find",
+        )
+        project3 = create_project(user=self.user, name="P3", description="P3")
+        res = self.client.get(
+            f"{PROJECT_URL}?search=target&sort=created_at&dir=desc&page_size=10"
+        )
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        results = res.data.get("results", res.data.get("data", res.data))
+        self.assertEqual(2, len(results))
+        project_ids_created_order = [project["id"] for project in results]
+        self.assertEqual(
+            project_ids_created_order, [results[0]["id"], results[1]["id"]]
+        )
+        self.assertEqual(project2.name, results[0]["name"])
+        self.assertEqual(project2.description, results[0]["description"])
+        self.assertEqual(project1.name, results[1]["name"])
+        self.assertEqual(project1.description, results[1]["description"])
+
     def test_update_project_partial(self):
         project = create_project(
             user=self.user,
@@ -71,6 +102,18 @@ class PrivateAuthApiTests(APITestCase):
         project.refresh_from_db()
         self.assertEqual(project.name, "TestDefault")
         self.assertEqual(project.description, "testingUpdated")
+
+    def test_update_another_users_project(self):
+        other_user = create_user(email="test999@example.com")
+        project = create_project(
+            user=other_user,
+        )
+
+        payload = {"description": "testingUpdated"}
+        url = detail_url(project.id)
+        res = self.client.patch(url, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_update_project_full(self):
         project = create_project(

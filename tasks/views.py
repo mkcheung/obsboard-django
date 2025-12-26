@@ -59,10 +59,11 @@ class TaskViewSet(viewsets.ModelViewSet):
             query_set = query_set.filter(priority=priority)
 
         # get the search terms
-        searchterms = self.request.query_params.get("search")
-        if searchterms:
+        search_terms = self.request.query_params.get("search")
+        if search_terms:
             query_set = query_set.filter(
-                Q(title__icontains=searchterms) | Q(description__icontains=searchterms)
+                Q(title__icontains=search_terms)
+                | Q(description__icontains=search_terms)
             )
 
         # process the sort parameters
