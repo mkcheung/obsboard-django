@@ -42,7 +42,12 @@ class PublicAuthApiTests(APITestCase):
         }
         res = self.client.post(REGISTER_URL, payload)
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        self.assertIn('token', res.data)
+        self.assertIn('user', res.data)
+
         user = User.objects.get(email=payload['email'])
+        self.assertEqual(res.data['user']['name'], user.name)
+        self.assertEqual(res.data['user']['email'], user.email)
         self.assertEqual(user.name, payload['name'])
         self.assertTrue(user.check_password(payload["password"]))
 

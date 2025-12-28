@@ -18,7 +18,18 @@ def register(request):
     serializer = RegisterSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     user = serializer.save()
-    return Response({"id": user.id, "name": user.name, "email": user.email}, status=status.HTTP_201_CREATED)
+    token, _ = Token.objects.get_or_create(user=user)
+    return Response(
+        {
+            "token":token.key, 
+            "user": {
+                "id": user.id,
+                "name": user.name, 
+                "email": user.email
+            },
+        },
+        status=status.HTTP_201_CREATED,
+    )
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
