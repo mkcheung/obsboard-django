@@ -4,6 +4,6 @@ from .views import ProjectViewSet
 
 app_name = "projects"
 router = DefaultRouter()
-router.register("projects", ProjectViewSet, basename="projects")
+router.register(r"", ProjectViewSet, basename="projects")
 
 urlpatterns = [path("", include(router.urls))]

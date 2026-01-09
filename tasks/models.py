@@ -3,6 +3,8 @@ from django.conf import settings
 
 
 class Task(models.Model):
+    class Meta:
+        db_table = "tasks"
 
     class Status(models.TextChoices):
         TODO = "todo", "To do"

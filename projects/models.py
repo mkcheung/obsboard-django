@@ -4,6 +4,8 @@ from django.db import models
 
 
 class Project(models.Model):
+    class Meta:
+        db_table = "projects"
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,

@@ -29,7 +29,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
     ordering = ["-created_at"]
 
     def get_queryset(self):
-        query_set = Project.objects.filter(user=self.request.user).order_by("-id")
+        query_set = Project.objects.filter(user=self.request.user).prefetch_related("tasks").order_by("-id")
 
         # handle search
         search_terms = self.request.query_params.get("search")
@@ -47,9 +47,9 @@ class ProjectViewSet(viewsets.ModelViewSet):
         }
         if sort in sortable_fields:
             prefix = "-" if direction == "desc" else ""
-            query_set.order_by(f"{prefix}{sort}")
+            query_set = query_set.order_by(f"{prefix}{sort}")
         else:
-            query_set.order_by("-created_at")
+            query_set = query_set.order_by("-created_at")
 
         return query_set
 

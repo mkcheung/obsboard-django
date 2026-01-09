@@ -6,7 +6,7 @@ from tasks.serializers import (
     TaskSerializer,
 )
 from rest_framework.authentication import TokenAuthentication
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -89,3 +89,10 @@ class TaskViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+    @action(detail=False, methods=["get"], url_path=r"getProjectRelatedTasks/(?P<project_id>\d+)")
+    def get_project_related_tasks(self, request, project_id=None):
+        tasks = Task.objects.filter(project_id=project_id, user=request.user).order_by("-id")
+        serializer = self.get_serializer(tasks, many=True)
+        return Response({"data": serializer.data})
+        
