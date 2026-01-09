@@ -46,7 +46,7 @@ def logout(request):
     request.auth.delete()
     return Response({"message": "Logged out"}, status=status.HTTP_200_OK)
 
-@api_view(["POST"])
+@api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def me(request):
     user = request.user
